@@ -1,0 +1,510 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fish It! | Enhanced Edition</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+    <div class="bg-shape bg-shape-a" aria-hidden="true"></div>
+    <div class="bg-shape bg-shape-b" aria-hidden="true"></div>
+
+    <header class="hero">
+        <div class="hero-top-row">
+            <div class="hero-brand">
+                <p class="eyebrow">Enhanced Edition</p>
+                <h1>Fish It!</h1>
+            </div>
+            <div class="hero-weather">
+                <div class="weather-badge" id="weather-badge">
+                    <span class="weather-icon" id="weather-icon">Sun</span>
+                    <span id="weather-text">Clear Skies</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-actions-row">
+            <div class="hero-actions">
+                <button class="btn-primary" onclick="GameAPI.shopOpen()">Shop</button>
+                <button class="btn-accent" onclick="GameAPI.openAchievements()">Achievements</button>
+            </div>
+            <div class="hero-account-stack">
+                <button class="btn-secondary hero-account-btn hero-account-icon-btn" id="btn-login" onclick="AuthAPI.login()" aria-label="Account Info" title="Account Info">
+                    <img class="hero-account-icon" src="icon/profile.svg" alt="">
+                </button>
+                <button class="btn-danger hero-account-btn" id="btn-logout" onclick="AuthAPI.logout()">Logout</button>
+                <p class="auth-status" id="user-status">Cloud: Offline</p>
+            </div>
+        </div>
+
+        <div class="player-stats">
+            <div class="stat stat-level">
+                <p class="stat-label">Level <span id="level-display">1</span></p>
+                <div class="progress-container">
+                    <div class="progress">
+                        <div class="progress-bar" id="xp-bar"></div>
+                    </div>
+                    <p class="progress-text"><span id="xp-current">0</span> / <span id="xp-next">1000</span> XP</p>
+                </div>
+            </div>
+            <div class="stat">
+                <p class="stat-label">Coins</p>
+                <p class="stat-value warning" id="coins-display">0</p>
+            </div>
+            <div class="stat">
+                <p class="stat-label">Combo</p>
+                <p class="stat-value" id="combo-display">0x</p>
+            </div>
+            <div class="stat">
+                <p class="stat-label">Rod Capacity</p>
+                <p class="stat-value" id="capacity-display">15 kg</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-layout">
+
+        <div class="fishing-zone fishing-zone--idle">
+            <section class="action-area">
+                <h3 class="farm-title">Fishing Zone</h3>
+
+                <div class="farm-toggle-row">
+                    <button class="auto-fish-btn farm-toggle-btn" id="auto-fish-btn">Enable Auto Fish</button>
+                    <span class="auto-status-pill" id="auto-status-pill">Inactive</span>
+                </div>
+                <div class="status-text" id="status-message">Ready to cast.</div>
+
+                <div class="timing-slot">
+                    <div class="minigame-container" id="minigame-ui">
+                        <div class="target-zone" id="mg-target"></div>
+                        <div class="indicator" id="mg-indicator"></div>
+                    </div>
+
+                    <div class="auto-cooldown-container" id="auto-cooldown-container">
+                        <div class="cooldown-label">Auto-Fishing...</div>
+                        <div class="cooldown-bar-track">
+                            <div class="cooldown-bar-fill" id="cooldown-bar-fill"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="last-catch-display" id="last-catch"></div>
+
+                <div class="action-buttons">
+                    <button class="btn-primary cast-btn-lg" id="action-btn">Cast Line</button>
+                </div>
+            </section>
+
+            <div class="results-panel-stack">
+                <section class="farm-results" id="auto-results-panel" aria-label="Auto fish results">
+                    <h3>Auto Fish Results</h3>
+                    <div class="farm-results-grid">
+                        <article class="farm-result-card">
+                            <p class="farm-result-value" id="auto-result-catches">0</p>
+                            <p class="farm-result-label">Total Catches</p>
+                        </article>
+                        <article class="farm-result-card">
+                            <p class="farm-result-value" id="auto-result-stored">0</p>
+                            <p class="farm-result-label">Fish Stored</p>
+                        </article>
+                        <article class="farm-result-card">
+                            <p class="farm-result-value" id="auto-result-xp">0</p>
+                            <p class="farm-result-label">XP Banked</p>
+                        </article>
+                        <article class="farm-result-card">
+                            <p class="farm-result-value" id="auto-result-combo">0%</p>
+                            <p class="farm-result-label">Combo Bonus</p>
+                        </article>
+                    </div>
+                </section>
+
+                <section class="farm-results" id="manual-results-panel" aria-label="Manual fishing results">
+                    <h3>Results</h3>
+                    <div class="farm-results-grid">
+                        <article class="farm-result-card">
+                            <p class="farm-result-value" id="manual-result-catches">0</p>
+                            <p class="farm-result-label">Total Catches</p>
+                        </article>
+                        <article class="farm-result-card">
+                            <p class="farm-result-value" id="manual-result-stored">0</p>
+                            <p class="farm-result-label">Fish Stored</p>
+                        </article>
+                        <article class="farm-result-card">
+                            <p class="farm-result-value" id="manual-result-xp">0</p>
+                            <p class="farm-result-label">XP Banked</p>
+                        </article>
+                        <article class="farm-result-card">
+                            <p class="farm-result-value" id="manual-result-combo">0%</p>
+                            <p class="farm-result-label">Combo Bonus</p>
+                        </article>
+                    </div>
+                </section>
+            </div>
+
+            <div class="zone-quick-menu" id="zone-quick-menu">
+                <button class="zone-quick-btn" id="zone-quick-btn" onclick="toggleQuickMenu()" aria-label="More menu" title="More">
+                    <img class="zone-quick-icon" src="icon/more-square.svg" alt="">
+                </button>
+                <div class="zone-quick-dropdown" id="zone-quick-dropdown">
+                    <button class="zone-quick-item"
+                        onclick="GameAPI.openExpeditions(); toggleQuickMenu();" aria-label="Expeditions"
+                        title="Expeditions">
+                        <img class="zone-quick-item-icon" src="icon/expeditions.svg" alt="">
+                    </button>
+                    <button class="zone-quick-item"
+                        onclick="GameAPI.openInventory(); toggleQuickMenu();" aria-label="Inventory" title="Inventory">
+                        <img class="zone-quick-item-icon" src="icon/inventory.svg" alt="">
+                    </button>
+                    <button class="zone-quick-item"
+                        onclick="GameAPI.openSettings(); toggleQuickMenu();" aria-label="Settings" title="Settings">
+                        <img class="zone-quick-item-icon" src="icon/settings.svg" alt="">
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <section class="panel leaderboard-panel" aria-label="Global leaderboards">
+            <div class="leaderboard-head">
+                <h2>Global Leaderboards</h2>
+                <p class="panel-note" id="leaderboard-meta">Refreshes every 10 minutes.</p>
+            </div>
+            <div class="leaderboard-grid">
+                <article class="leaderboard-card">
+                    <h3>Most Money Earned</h3>
+                    <ol class="leaderboard-list" id="leaderboard-money-list"></ol>
+                </article>
+                <article class="leaderboard-card">
+                    <h3>Most Fish Caught</h3>
+                    <ol class="leaderboard-list" id="leaderboard-fish-list"></ol>
+                </article>
+            </div>
+            <p class="panel-note leaderboard-user-note" id="leaderboard-user-note"></p>
+        </section>
+
+        <section class="panel">
+            <div class="journal-header">
+                <h2>Journal</h2>
+                <details class="journal-hotkey-menu">
+                    <summary aria-label="Open hotkeys menu" title="Hotkeys"></summary>
+                    <div class="journal-hotkey-list">
+                        <span><kbd id="hotkey-cast">C</kbd> Cast</span>
+                        <span><kbd id="hotkey-autoFish">A</kbd> Auto Fish</span>
+                        <span><kbd id="hotkey-inventory">I</kbd> Inventory</span>
+                        <span><kbd id="hotkey-shop">O</kbd> Shop</span>
+                        <span><kbd id="hotkey-achievements">H</kbd> Achievements</span>
+                        <span><kbd id="hotkey-expeditions">E</kbd> Expeditions</span>
+                        <span><kbd id="hotkey-settings">P</kbd> Settings</span>
+                        <span><kbd id="hotkey-save">S</kbd> Save</span>
+                        <span><kbd>Esc</kbd> Close Menus</span>
+                        <span><kbd>1-4</kbd> Shop Tabs</span>
+                        <span><kbd>Alt+1..9</kbd> Visible Buttons</span>
+                    </div>
+                </details>
+            </div>
+            <ul class="log-list" id="game-log"></ul>
+        </section>
+    </main>
+
+    <div class="shop-modal-overlay" id="shop-modal-overlay" onclick="GameAPI.shopClose()"></div>
+    <div class="shop-modal" id="shop-modal">
+        <div class="shop-modal-header">
+            <h2>General Shop</h2>
+            <button class="shop-close-btn" onclick="GameAPI.shopClose()">&times;</button>
+        </div>
+        <div class="shop-tabs">
+            <button class="shop-tab-btn active" data-tab="weather"
+                onclick="GameAPI.shopSwitchTab('weather')">Weather</button>
+            <button class="shop-tab-btn" data-tab="amulets" onclick="GameAPI.shopSwitchTab('amulets')">Amulets</button>
+            <button class="shop-tab-btn" data-tab="rods" onclick="GameAPI.shopSwitchTab('rods')">Rods</button>
+            <button class="shop-tab-btn" data-tab="baits" onclick="GameAPI.shopSwitchTab('baits')">Baits</button>
+        </div>
+        <div class="shop-tab-content" id="shop-tab-content"></div>
+    </div>
+
+    <div class="shop-modal-overlay" id="achievements-overlay" onclick="GameAPI.closeAchievements()"></div>
+    <div class="shop-modal achievements-modal" id="achievements-modal">
+        <div class="shop-modal-header">
+            <h2>Achievements</h2>
+            <button class="shop-close-btn" onclick="GameAPI.closeAchievements()">&times;</button>
+        </div>
+        <div id="achievements-list" class="achievements-list"></div>
+    </div>
+
+    <div class="shop-modal-overlay" id="expeditions-overlay" onclick="GameAPI.closeExpeditions()"></div>
+    <div class="shop-modal expeditions-modal" id="expeditions-modal">
+        <div class="shop-modal-header">
+            <h2>Expeditions</h2>
+            <button class="shop-close-btn" onclick="GameAPI.closeExpeditions()">&times;</button>
+        </div>
+        <div class="shop-tab-content expeditions-modal-content">
+            <p class="panel-note">Choose a playable location to change fish pools and conditions.</p>
+            <div class="location-grid" id="location-grid"></div>
+
+            <section class="biome-atlas-block" aria-label="New biome atlas">
+                <div class="biome-atlas-head">
+                    <h3>New Biome Atlas</h3>
+                    <span class="biome-atlas-pill">Concept Preview</span>
+                </div>
+                <p class="panel-note">Unimplemented concepts remain display-only in this atlas while playable biomes appear above.</p>
+                <div class="biome-atlas-sections" id="biome-atlas-sections"></div>
+            </section>
+        </div>
+    </div>
+
+    <div class="shop-modal-overlay" id="inventory-overlay" onclick="GameAPI.closeInventory()"></div>
+    <div class="shop-modal inventory-modal" id="inventory-modal">
+        <div class="shop-modal-header">
+            <h2>Inventory</h2>
+            <button class="shop-close-btn" onclick="GameAPI.closeInventory()">&times;</button>
+        </div>
+        <div class="shop-tab-content inventory-modal-content">
+            <div class="inventory-header">
+                <p class="panel-note">Review and sell your current fish inventory.</p>
+                <button class="btn-secondary" onclick="GameAPI.inventorySellAll()">Sell All</button>
+            </div>
+            <div class="inv-scroll">
+                <table id="inventory-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Rarity</th>
+                            <th>Weight</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="shop-modal-overlay" id="settings-overlay" onclick="GameAPI.closeSettings()"></div>
+    <div class="shop-modal settings-modal" id="settings-modal">
+        <div class="shop-modal-header">
+            <h2>Settings</h2>
+            <button class="shop-close-btn" onclick="GameAPI.closeSettings()">&times;</button>
+        </div>
+        <div class="shop-tab-content settings-modal-content">
+            <section class="settings-card">
+                <h3>Performance</h3>
+                <label class="settings-toggle-row" for="settings-floating-text">
+                    <input type="checkbox" id="settings-floating-text" />
+                    <span>Hide Floating Text Notifications</span>
+                </label>
+                <p class="settings-help">Hide floating text like +Coins and Critical.</p>
+            </section>
+
+            <section class="settings-card">
+                <h3>Theme</h3>
+                <div class="settings-theme-options">
+                    <label class="settings-choice"><input type="radio" name="settings-theme-mode" value="auto"> Automatic</label>
+                    <label class="settings-choice"><input type="radio" name="settings-theme-mode" value="light"> Light</label>
+                    <label class="settings-choice"><input type="radio" name="settings-theme-mode" value="dark"> Dark</label>
+                </div>
+            </section>
+
+            <section class="settings-card">
+                <div class="settings-card-head">
+                    <h3>Keybinds</h3>
+                    <button type="button" class="btn-secondary btn-sm" id="settings-keybind-reset">Reset Defaults</button>
+                </div>
+                <p class="settings-help">Select a key field, then press a key (example: Space).</p>
+                <div class="settings-keybind-grid">
+                    <label class="settings-keybind-row"><span>Cast</span><input class="settings-key-input" type="text" readonly data-keybind="cast"></label>
+                    <label class="settings-keybind-row"><span>Auto Fish</span><input class="settings-key-input" type="text" readonly data-keybind="autoFish"></label>
+                    <label class="settings-keybind-row"><span>Inventory</span><input class="settings-key-input" type="text" readonly data-keybind="inventory"></label>
+                    <label class="settings-keybind-row"><span>Shop</span><input class="settings-key-input" type="text" readonly data-keybind="shop"></label>
+                    <label class="settings-keybind-row"><span>Achievements</span><input class="settings-key-input" type="text" readonly data-keybind="achievements"></label>
+                    <label class="settings-keybind-row"><span>Expeditions</span><input class="settings-key-input" type="text" readonly data-keybind="expeditions"></label>
+                    <label class="settings-keybind-row"><span>Settings</span><input class="settings-key-input" type="text" readonly data-keybind="settings"></label>
+                    <label class="settings-keybind-row"><span>Save</span><input class="settings-key-input" type="text" readonly data-keybind="save"></label>
+                </div>
+            </section>
+
+            <section class="settings-card">
+                <h3>Save Data</h3>
+                <div class="settings-save-actions">
+                    <button type="button" class="btn-secondary" id="settings-save-btn">Save</button>
+                    <button type="button" class="btn-danger" id="settings-reset-btn">Reset</button>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div class="shop-modal-overlay" id="auth-overlay" onclick="AuthAPI.closeAuthModal()"></div>
+    <div class="shop-modal auth-modal" id="auth-modal">
+        <div class="shop-modal-header">
+            <h2 id="auth-modal-title">Cloud Login</h2>
+            <button class="shop-close-btn" onclick="AuthAPI.closeAuthModal()">&times;</button>
+        </div>
+        <div class="shop-tab-content auth-modal-content">
+            <p class="panel-note" id="auth-modal-subtitle">Sign in to sync your save to cloud.</p>
+
+            <div class="auth-mode-switch">
+                <button type="button" class="auth-mode-btn active" id="auth-mode-login"
+                    onclick="AuthAPI.setAuthMode('login')">Login</button>
+                <button type="button" class="auth-mode-btn" id="auth-mode-signup"
+                    onclick="AuthAPI.setAuthMode('signup')">Sign Up</button>
+            </div>
+
+            <form id="auth-form" class="auth-form" onsubmit="return AuthAPI.submitAuth(event)">
+                <label class="auth-field-label" for="auth-email">Email</label>
+                <input id="auth-email" class="auth-field-input" type="email" autocomplete="email"
+                    placeholder="you@example.com" required />
+
+                <div class="auth-signup-only" id="auth-username-block" hidden>
+                    <label class="auth-field-label" for="auth-username">Username</label>
+                    <input id="auth-username" class="auth-field-input" type="text" autocomplete="username"
+                        placeholder="3-20 chars, start with letter, letters/numbers/_" minlength="3" maxlength="20" />
+                    <p class="auth-username-feedback" id="auth-username-feedback"></p>
+                </div>
+
+                <label class="auth-field-label" for="auth-password">Password</label>
+                <div class="auth-password-input-wrap">
+                    <input id="auth-password" class="auth-field-input" type="password" autocomplete="current-password"
+                        placeholder="Minimum 6 characters" required minlength="6" />
+                    <button type="button" class="auth-password-toggle" id="auth-password-toggle" aria-label="Show password" title="Show password">
+                        <svg class="auth-password-icon auth-password-icon-eye" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        <svg class="auth-password-icon auth-password-icon-eyeoff" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M2 12s3.5-6 10-6c2.6 0 4.8.95 6.56 2.15"></path>
+                            <path d="M22 12s-3.5 6-10 6c-2.6 0-4.8-.95-6.56-2.15"></path>
+                            <path d="M9.88 9.88A3 3 0 0 1 14.12 14.12"></path>
+                            <path d="M3 3l18 18"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <ul class="auth-signup-only auth-password-checklist" id="auth-password-checklist" hidden>
+                    <li class="auth-password-rule" id="auth-password-rule-uppercase">
+                        <span class="auth-password-rule-indicator" aria-hidden="true"></span>
+                        <span>Uppercase letter</span>
+                    </li>
+                    <li class="auth-password-rule" id="auth-password-rule-lowercase">
+                        <span class="auth-password-rule-indicator" aria-hidden="true"></span>
+                        <span>Lowercase letter</span>
+                    </li>
+                    <li class="auth-password-rule" id="auth-password-rule-number">
+                        <span class="auth-password-rule-indicator" aria-hidden="true"></span>
+                        <span>Number</span>
+                    </li>
+                    <li class="auth-password-rule" id="auth-password-rule-special">
+                        <span class="auth-password-rule-indicator" aria-hidden="true"></span>
+                        <span>Special character (e.g. !?&lt;&gt;@#$%)</span>
+                    </li>
+                    <li class="auth-password-rule" id="auth-password-rule-length">
+                        <span class="auth-password-rule-indicator" aria-hidden="true"></span>
+                        <span>8 characters or more</span>
+                    </li>
+                </ul>
+
+                <button type="submit" class="btn-primary auth-submit-btn" id="auth-submit-btn">Login</button>
+            </form>
+
+            <p class="auth-form-feedback" id="auth-form-feedback"></p>
+        </div>
+    </div>
+    <div class="shop-modal-overlay" id="username-overlay" onclick="AuthAPI.closeUsernameModal()"></div>
+    <div class="shop-modal auth-modal username-modal" id="username-modal">
+        <div class="shop-modal-header">
+            <h2 id="username-modal-title">Set Username</h2>
+            <button class="shop-close-btn" onclick="AuthAPI.closeUsernameModal()">&times;</button>
+        </div>
+        <div class="shop-tab-content auth-modal-content">
+            <p class="panel-note" id="username-modal-subtitle">Choose a unique username to appear on global leaderboards.</p>
+            <form id="username-form" class="auth-form" onsubmit="return AuthAPI.submitUsername(event)">
+                <label class="auth-field-label" for="username-required-input">Username</label>
+                <input id="username-required-input" class="auth-field-input" type="text" autocomplete="username"
+                    placeholder="3-20 chars, start with letter, letters/numbers/_" minlength="3" maxlength="20" required />
+                <p class="auth-username-feedback" id="username-required-availability"></p>
+                <button type="submit" class="btn-primary auth-submit-btn" id="username-submit-btn">Save Username</button>
+                <button type="button" class="btn-secondary auth-submit-btn" id="username-skip-btn" onclick="AuthAPI.skipUsernameSetup()">Skip Leaderboards For Now</button>
+            </form>
+            <p class="auth-form-feedback" id="username-form-feedback"></p>
+        </div>
+    </div>
+
+    <script src="js/data/rarity.js"></script>
+    <script src="js/data/rods.js"></script>
+    <script src="js/data/baits.js"></script>
+    <script src="js/data/weather.js"></script>
+    <script src="js/data/locations.js"></script>
+    <script src="js/data/new-biome-atlas.js"></script>
+    <script src="js/data/amulets.js"></script>
+    <script src="js/data/weather-shop.js"></script>
+    <script src="js/data/achievements.js"></script>
+
+    <script src="js/data/biomes/mistvale.js"></script>
+    <script src="js/data/biomes/stone_rapids.js"></script>
+    <script src="js/data/biomes/volcanic.js"></script>
+    <script src="js/data/biomes/emerald.js"></script>
+    <script src="js/data/biomes/midnight.js"></script>
+    <script src="js/data/biomes/crystalline_abyss.js"></script>
+    <script src="js/data/biomes/skyhollow_reaches.js"></script>
+    <script src="js/data/biomes/resonant_depths.js"></script>
+    <script src="js/data/biomes/mycelial_depths.js"></script>
+    <script src="js/data/biomes/sunken_citadel.js"></script>
+    <script src="js/data/biomes/glacial_spire.js"></script>
+    <script src="js/data/biomes/chrono_river.js"></script>
+    <script src="js/data/biomes/neon_bayou.js"></script>
+    <script src="js/data/biomes/gearwork_grotto.js"></script>
+    <script src="js/data/biomes/aetherial_void.js"></script>
+    <script src="js/data/biomes/confection_coast.js"></script>
+    <script src="js/data/biomes/origami_archipelago.js"></script>
+    <script src="js/data/biomes/vaporwave_vista.js"></script>
+    <script src="js/data/biomes/prism_light_pools.js"></script>
+    <script src="js/data/biomes/silk_thread_stream.js"></script>
+    <script src="js/data/biomes/ferromagnetic_falls.js"></script>
+    <script src="js/data/biomes/amber_aquifer.js"></script>
+    <script src="js/data/biomes/tar_pit_tributary.js"></script>
+    <script src="js/data/biomes/ossuary_ocean.js"></script>
+    <script src="js/data/biomes/cellular_sea.js"></script>
+    <script src="js/data/biomes/isotope_estuary.js"></script>
+    <script src="js/data/fish-db.js"></script>
+
+    <script src="js/systems/ui.js"></script>
+    <script src="js/systems/shop.js"></script>
+    <script src="js/systems/inventory.js"></script>
+    <script src="js/systems/save.js"></script>
+    <script src="js/systems/achievements.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/systems/cloud.js"></script>
+    <script src="js/systems/leaderboard.js"></script>
+    <script>
+        function toggleQuickMenu() {
+            var menu = document.getElementById('zone-quick-menu');
+            menu.classList.toggle('open');
+        }
+        document.addEventListener('click', function (e) {
+            var menu = document.getElementById('zone-quick-menu');
+            if (menu && !menu.contains(e.target)) menu.classList.remove('open');
+        });
+    </script>
+    <script src="js/engine.js"></script>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
